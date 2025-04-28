@@ -82,3 +82,26 @@ def test_dbaas_replicas_list():
     assert exit_code == 0, stderr
     assert "results" in jsonout
     assert "meta" in jsonout
+
+# def test_dbaas_clusters_create():
+    # assert 1 == 2
+
+# def test_dbaas_clusters_get():
+    # assert 1 == 2
+
+def test_dbaas_clusters_list():
+    exit_code, _, stderr, jsonout = run_cli(["dbaas", "clusters", "list"])
+
+    assert exit_code == 0, stderr
+    assert "results" in jsonout
+    assert "meta" in jsonout
+
+# def test_dbaas_clusters_start():
+#     assert 1 == 2
+
+# def test_dbaas_clusters_stop():
+#     assert 1 == 2
+
+# def test_dbaas_clusters_delete():
+#     assert 1 == 2
+
