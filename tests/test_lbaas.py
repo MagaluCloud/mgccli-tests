@@ -35,7 +35,7 @@ def test_lb_network_loadbalancers_create():
             "--name=nlb-test",
             "--visibility=internal",
             f"--vpc-id={_get_default_vpc()}",
-            '--backends=[{"balance_algorithm":"round_robin","description":"Some optional backend description 1","health_check_name":"nlb-health-check-1","name":"nlb-backend-1","targets_type":"instance"}]',
+            '--backends=[{"balance_algorithm":"round_robin","description":"Some optional backend description 1","name":"nlb-backend-1","targets_type":"instance"}]',
             '--listeners=[{"backend_name":"nlb-backend-1","name":"nlb-listener-1","port":80,"protocol":"tcp"}]',
         ]
     )
