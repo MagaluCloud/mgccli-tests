@@ -11,7 +11,7 @@ def _get_nlb(nlb_id):
 
 def _wait_for_nlb_running_state(nlb_id):
     _, _, _, jsonout = _get_nlb(nlb_id)
-    while jsonout["status"] not in ["running"]:
+    while jsonout["status"] not in ["running", "failed"]:
         time.sleep(5)
         _, _, _, jsonout = _get_nlb(nlb_id)
 
