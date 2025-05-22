@@ -29,10 +29,10 @@ def test_vm_images_list():
 
 
 def test_vm_machine_types_list():
-    exit_code, _, stderr, jsonout = run_cli(["vm", "instance-types", "list"])
+    exit_code, _, stderr, jsonout = run_cli(["vm", "machine-types", "list"])
     assert exit_code == 0, stderr
-    assert "instance_types" in jsonout
-    assert len(jsonout["instance_types"]) > 0
+    assert "machine_types" in jsonout
+    assert len(jsonout["machine_types"]) > 0
 
 
 def test_vm_snapshots_list():
