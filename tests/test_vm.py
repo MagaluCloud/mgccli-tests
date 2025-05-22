@@ -12,30 +12,32 @@ def _get_vm(vm_id):
 def test_create_ssh_key():
     key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK0wmN/Cr3JXqmLW7u+g9pTh+wyqDHpSQEIQczXkVx9q not_really@a.key"
     key_name = "cli-test-key"
-    exit_code, _, _, jsonout = run_cli(
+    exit_code, _, stderr, jsonout = run_cli(
         ["profile", "ssh-keys", "create", f"--name={key_name}", f"--key={key}"]
     )
-    assert exit_code == 0
+    assert exit_code == 0, stderr
     assert "id" in jsonout
     vm_test_context["key_id"] = jsonout["id"]
     vm_test_context["key_name"] = key_name
 
 
 def test_vm_images_list():
-    exit_code, _, _, jsonout = run_cli(["vm", "images", "list"])
-    assert exit_code == 0
+    exit_code, _, stderr, jsonout = run_cli(["vm", "images", "list"])
+    assert exit_code == 0, stderr
+    assert "images" in jsonout
     assert len(jsonout["images"]) > 0
 
 
 def test_vm_machine_types_list():
-    exit_code, _, _, jsonout = run_cli(["vm", "machine-types", "list"])
-    assert exit_code == 0
-    assert len(jsonout["machine_types"]) > 0
+    exit_code, _, stderr, jsonout = run_cli(["vm", "instance-types", "list"])
+    assert exit_code == 0, stderr
+    assert "instance_types" in jsonout
+    assert len(jsonout["instance_types"]) > 0
 
 
 def test_vm_snapshots_list():
-    exit_code, _, _, jsonout = run_cli(["vm", "snapshots", "list"])
-    assert exit_code == 0
+    exit_code, _, stderr, jsonout = run_cli(["vm", "snapshots", "list"])
+    assert exit_code == 0, stderr
     assert "snapshots" in jsonout
 
 
@@ -64,6 +66,7 @@ def test_vm_instances_create():
 
     assert jsonout["status"] == "completed"
 
+
 def test_vm_instances_create_with_error():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -85,16 +88,16 @@ def test_vm_instances_create_with_error():
 
 
 def test_vm_instances_list():
-    exit_code, _, _, jsonout = run_cli(["vm", "instances", "list"])
-    assert exit_code == 0
+    exit_code, _, stderr, jsonout = run_cli(["vm", "instances", "list"])
+    assert exit_code == 0, stderr
     assert "instances" in jsonout
 
 
 def test_vm_instances_get():
-    exit_code, _, _, jsonout = run_cli(
+    exit_code, _, stderr, jsonout = run_cli(
         ["vm", "instances", "get", vm_test_context["vm_id"]]
     )
-    assert exit_code == 0
+    assert exit_code == 0, stderr
     assert "id" in jsonout
     assert "availability_zone" in jsonout
     assert "image" in jsonout
@@ -107,15 +110,24 @@ def test_vm_instances_get():
     assert "status" in jsonout
 
 
+def test_vm_instances_init_logs():
+    exit_code, _, _, jsonout = run_cli(
+        ["vm", "instances", "init-logs", vm_test_context["vm_id"]]
+    )
+    assert exit_code == 0
+    assert "logs" in jsonout
+    assert len(jsonout["logs"]) > 0
+
+
 def test_vm_instances_delete():
-    exit_code, _, stderr, jsonout = run_cli(
+    exit_code, _, stderr, _ = run_cli(
         ["vm", "instances", "delete", vm_test_context["vm_id"], "--no-confirm"]
     )
     assert exit_code == 0, stderr
 
 
 def test_profile_ssh_keys_delete():
-    exit_code, stdout, stderr, jsonout = run_cli(
+    exit_code, stdout, stderr, _ = run_cli(
         [
             "profile",
             "ssh-keys",
@@ -124,4 +136,4 @@ def test_profile_ssh_keys_delete():
             "--no-confirm",
         ]
     )
-    assert exit_code == 0
+    assert exit_code == 0, stderr

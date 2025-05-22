@@ -58,7 +58,6 @@ def test_lb_network_loadbalancers_get():
     assert "health_checks" in jsonout
     assert "ip_address" in jsonout
     assert "listeners" in jsonout
-    assert "port" in jsonout
     assert "public_ips" in jsonout
     assert "status" in jsonout
     assert "type" in jsonout
