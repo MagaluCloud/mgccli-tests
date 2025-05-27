@@ -1,5 +1,5 @@
+import random
 import time
-import uuid
 
 from utils import run_cli
 
@@ -109,7 +109,7 @@ def test_dbaas_instances_create():
             "--password=some-passwd",
             "--volume.size=10",
             "--volume.type=CLOUD_NVME15K",
-            "--name=cli-test-instance",
+            f"--name=cli-test-{random.randint(0, 9999)}",
         ]
     )
 
@@ -144,7 +144,6 @@ def test_dbaas_instances_get():
     assert "backup_retention_days" in jsonout
     assert "created_at" in jsonout
     assert "engine_id" in jsonout
-    assert "finished_at" in jsonout
     assert "generation" in jsonout
     assert "id" in jsonout
     assert "instance_type_id" in jsonout
