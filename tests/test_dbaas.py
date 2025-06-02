@@ -51,7 +51,7 @@ def test_dbaas_engines_get():
 
 
 def test_dbaas_instance_types_list():
-    exit_code, _, stderr, jsonout = run_cli(["dbaas", "instance-types", "list"])
+    exit_code, _, stderr, jsonout = run_cli(["dbaas", "instance-types", "list", "--status=ACTIVE"])
     assert exit_code == 0, stderr
     assert "results" in jsonout
     assert len(jsonout["results"]) > 0
