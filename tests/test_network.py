@@ -51,6 +51,35 @@ def test_network_ports_list():
     assert exit_code == 0, stderr
     assert isinstance(jsonout, list)
 
+def test_network_ports_update_anti_spoofing():
+    port_id = None
+    exit_code, _, stderr, jsonout = run_cli(["network", "ports", "list"])
+    assert exit_code == 0, stderr
+    if len(jsonout) == 0:
+        # get vpc id
+        exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "list"])
+        assert exit_code == 0, stderr
+        vpc_id = jsonout["vpcs"][0]["id"]
+        # create a port
+        exit_code, _, stderr, jsonout = run_cli(["network", "vpcs","ports", "create", "--vpc-id", vpc_id, "--name", "test-port"])
+        assert exit_code == 0, stderr
+
+        # Wait until VPC processing is over (hoping it will be)
+        while len(jsonout) == 0:
+            time.sleep(1)
+            exit_code, _, stderr, jsonout = run_cli(["network", "ports", "list"])
+
+        # get the port id
+        port_id = jsonout[0]["id"]
+
+    assert exit_code == 0, stderr
+    assert len(jsonout) > 0
+    port_id = jsonout[0]["id"]
+    
+    # update the port
+    print(f"Updating port {port_id} with ip-spoofing-guard=true")
+    exit_code, _, stderr, jsonout = run_cli(["network", "ports", "update", "--port-id", port_id, "--ip-spoofing-guard", "true"])
+    assert exit_code == 0, stderr
 
 def test_network_natgateways_create():
     exit_code, _, stderr, jsonout = run_cli(
