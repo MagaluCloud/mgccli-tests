@@ -77,7 +77,6 @@ def test_network_ports_update_anti_spoofing():
     port_id = jsonout[0]["id"]
     
     # update the port
-    print(f"Updating port {port_id} with ip-spoofing-guard=true")
     exit_code, _, stderr, jsonout = run_cli(["network", "ports", "update", "--port-id", port_id, "--ip-spoofing-guard", "true"])
     assert exit_code == 0, stderr
 
