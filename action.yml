@@ -11,10 +11,6 @@ inputs:
     description: 'Argumentos adicionais para passar ao pytest'
     required: false
     default: ''
-  working-directory:
-    description: 'Diretório onde executar os testes'
-    required: false
-    default: '.'
 
 runs:
   using: 'composite'
@@ -49,12 +45,12 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: /tmp/mgccli-source
       run: |
         poetry install --no-interaction
 
     - name: Run tests
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: /tmp/mgccli-source
       run: |
         poetry run pytest ${{ inputs.pytest-args }} --ignore=tests/test_auth.py
