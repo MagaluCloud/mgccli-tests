@@ -44,7 +44,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        poetry install --no-interaction
+        poetry install --all-extras --no-interaction
 
     - name: Run tests
       shell: bash
