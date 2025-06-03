@@ -46,39 +46,49 @@ def test_network_vpcs_list():
     assert len(jsonout["vpcs"]) > 0
 
 
+def test_network_ports_create():
+    vpc_id = network_test_context["vpc_id"]
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "network",
+            "vpcs",
+            "ports",
+            "create",
+            "--vpc-id",
+            vpc_id,
+            "--name",
+            "test-port",
+        ]
+    )
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+
+    network_test_context["port_id"] = jsonout["id"]
+
+
 def test_network_ports_list():
     exit_code, _, stderr, jsonout = run_cli(["network", "ports", "list"])
     assert exit_code == 0, stderr
     assert isinstance(jsonout, list)
-
-def test_network_ports_update_anti_spoofing():
-    port_id = None
-    exit_code, _, stderr, jsonout = run_cli(["network", "ports", "list"])
-    assert exit_code == 0, stderr
-    if len(jsonout) == 0:
-        # get vpc id
-        exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "list"])
-        assert exit_code == 0, stderr
-        vpc_id = jsonout["vpcs"][0]["id"]
-        # create a port
-        exit_code, _, stderr, jsonout = run_cli(["network", "vpcs","ports", "create", "--vpc-id", vpc_id, "--name", "test-port"])
-        assert exit_code == 0, stderr
-
-        # Wait until VPC processing is over (hoping it will be)
-        while len(jsonout) == 0:
-            time.sleep(1)
-            exit_code, _, stderr, jsonout = run_cli(["network", "ports", "list"])
-
-        # get the port id
-        port_id = jsonout[0]["id"]
-
-    assert exit_code == 0, stderr
     assert len(jsonout) > 0
-    port_id = jsonout[0]["id"]
-    
-    # update the port
-    exit_code, _, stderr, jsonout = run_cli(["network", "ports", "update", "--port-id", port_id, "--ip-spoofing-guard", "true"])
+
+
+def test_network_ports_update():
+    port_id = network_test_context["port_id"]
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "network",
+            "ports",
+            "update",
+            "--port-id",
+            port_id,
+            "--ip-spoofing-guard",
+            "true",
+        ]
+    )
     assert exit_code == 0, stderr
+    assert "teste" in jsonout, jsonout
+
 
 def test_network_natgateways_create():
     exit_code, _, stderr, jsonout = run_cli(
@@ -134,6 +144,13 @@ def test_network_natgateway_delete():
             network_test_context["natgateway_id"],
             "--no-confirm",
         ]
+    )
+    assert exit_code == 0, stderr
+
+
+def test_network_ports_delete():
+    exit_code, _, stderr, _ = run_cli(
+        ["network", "vpcs", "delete", network_test_context["port_id"], "--no-confirm"]
     )
     assert exit_code == 0, stderr
 
