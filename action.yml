@@ -23,34 +23,59 @@ runs:
           exit 1
         fi
         if [ -z "$MGC_PATH" ]; then
-          echo "❌ MGC_PATH não está definida"  
+          echo "❌ MGC_PATH não está definida"
           exit 1
-        fi  
-
+        fi
+        echo "✅ Variáveis de ambiente validadas"
+        
+    - name: Resolve MGC_PATH
+      shell: bash
+      run: |
+        # Se MGC_PATH é relativo, converte para absoluto baseado no workspace
+        if [[ "$MGC_PATH" != /* ]]; then
+          export MGC_PATH="${{ github.workspace }}/${MGC_PATH}"
+        fi
+        echo "MGC_PATH_RESOLVED=$MGC_PATH" >> $GITHUB_ENV
+        echo "MGC_PATH resolvido para: $MGC_PATH"
+        
+    - name: Verify MGC binary
+      shell: bash
+      run: |
+        if [ ! -f "$MGC_PATH_RESOLVED" ]; then
+          echo "❌ Binário MGC não encontrado em: $MGC_PATH_RESOLVED"
+          echo "Listando arquivos no diretório:"
+          ls -la "$(dirname "$MGC_PATH_RESOLVED")" || echo "Diretório não existe"
+          exit 1
+        fi
+        echo "✅ Binário MGC encontrado: $MGC_PATH_RESOLVED"
+        
     - name: Checkout mgccli source
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: MagaluCloud/mgccli-tests
         path: ./tmp/mgccli-source
-
+        
     - name: Set up Python
       uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
       with:
         python-version: ${{ inputs.python-version }}
-
+        
     - name: Install Poetry
       uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
       with:
         version: 1.8.4
-
+        
     - name: Install dependencies
       shell: bash
       working-directory: ./tmp/mgccli-source
       run: |
         poetry install --no-interaction
-
+        
     - name: Run tests
       shell: bash
       working-directory: ./tmp/mgccli-source
+      env:
+        MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
+        echo "Executando testes com MGC_PATH: $MGC_PATH"
         poetry run pytest ${{ inputs.pytest-args }} --ignore=tests/test_auth.py
