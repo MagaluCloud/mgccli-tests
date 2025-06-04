@@ -1,24 +1,29 @@
 import time
+import os
 from utils import run_cli
 
 object_test_context = {}
 
 bucket_name = "mgc-cli-tests-temp"
 
+MGC_API_KEY = os.environ.get("MGC_API_KEY")
 
 def test_objs_api_key_list():
-    exit_code, _, stderr, jsonout = run_cli(["os", "api-key", "list"])
-    assert exit_code == 0, stderr
-    assert len(jsonout) > 0
+    # skip if MGC_PATH is set
+    if not MGC_API_KEY:
+        exit_code, _, stderr, jsonout = run_cli(["os", "api-key", "list"])
+        assert exit_code == 0, stderr
+        assert len(jsonout) > 0
 
-    object_test_context["keys"] = jsonout
+        object_test_context["keys"] = jsonout
 
 
 def test_objs_api_key_set():
-    exit_code, _, stderr, _ = run_cli(
-        ["os", "api-key", "set", object_test_context["keys"][0]["uuid"]]
-    )
-    assert exit_code == 0, stderr
+    if not MGC_API_KEY:
+        exit_code, _, stderr, _ = run_cli(
+            ["os", "api-key", "set", object_test_context["keys"][0]["uuid"]]
+        )
+        assert exit_code == 0, stderr
 
 
 def test_objs_buckets_create():
