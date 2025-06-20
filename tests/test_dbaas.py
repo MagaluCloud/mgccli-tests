@@ -171,15 +171,15 @@ def test_dbaas_clusters_list():
     assert "meta" in jsonout
 
 
-# def test_dbaas_instances_delete():
-#     exit_code, _, stderr, jsonout = run_cli(
-#         [
-#             "dbaas",
-#             "instances",
-#             "delete",
-#             dbaas_test_context["instance_id"],
-#             "--no-confirm",
-#         ]
-#     )
+def test_dbaas_instances_delete():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "instances",
+            "delete",
+            dbaas_test_context["instance_id"],
+            "--no-confirm",
+        ]
+    )
 
-#     assert exit_code == 0, stderr
+    assert exit_code == 0, stderr
