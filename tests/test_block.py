@@ -1,3 +1,4 @@
+import random
 import time
 from utils import run_cli
 
@@ -24,7 +25,7 @@ def test_bs_volumes_create():
             "bs",
             "volumes",
             "create",
-            "--name=test-volume",
+            f"--name=test-volume-{random.randint(0, 9999)}",
             "--size=10",
             "--type.name=cloud_nvme10k",
         ]
@@ -61,7 +62,7 @@ def test_bs_snapshots_create():
             "bs",
             "snapshots",
             "create",
-            "--name=test-snapshot",
+            f"--name=test-snapshot-{random.randint(0, 9999)}",
             "--description='just for testing'",
             f"--volume.id={block_test_context["volume_id"]}",
         ]

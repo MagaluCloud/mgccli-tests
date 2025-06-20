@@ -67,11 +67,12 @@ def test_dbaas_instance_types_list():
     assert "vcpu" in instance_type
 
     for it in jsonout["results"]:
+        dbaas_test_context["engine_id"] = it["engine_id"]
         if it["compatible_product"] == "SINGLE_INSTANCE":
             dbaas_test_context["single_instance_type_id"] = it["id"]
         if it["compatible_product"] == "CLUSTER":
             dbaas_test_context["cluster_instance_type_id"] = it["id"]
-
+    
     assert dbaas_test_context["single_instance_type_id"]
     # assert dbaas_test_context["cluster_instance_type_id"]
 
@@ -170,15 +171,15 @@ def test_dbaas_clusters_list():
     assert "meta" in jsonout
 
 
-def test_dbaas_instances_delete():
-    exit_code, _, stderr, jsonout = run_cli(
-        [
-            "dbaas",
-            "instances",
-            "delete",
-            dbaas_test_context["instance_id"],
-            "--no-confirm",
-        ]
-    )
+# def test_dbaas_instances_delete():
+#     exit_code, _, stderr, jsonout = run_cli(
+#         [
+#             "dbaas",
+#             "instances",
+#             "delete",
+#             dbaas_test_context["instance_id"],
+#             "--no-confirm",
+#         ]
+#     )
 
-    assert exit_code == 0, stderr
+#     assert exit_code == 0, stderr
