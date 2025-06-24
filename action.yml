@@ -12,6 +12,14 @@ inputs:
     required: false
     default: ''
 
+outputs:
+  test-output:
+    description: 'Output completo dos testes executados'
+    value: ${{ steps.run-tests.outputs.output }}
+  test-exit-code:
+    description: 'Código de saída dos testes (0 = sucesso, outros = falha)'
+    value: ${{ steps.run-tests.outputs.exit-code }}
+
 runs:
   using: 'composite'
   steps:
@@ -72,10 +80,31 @@ runs:
         poetry install --no-interaction
         
     - name: Run tests
+      id: run-tests
       shell: bash
       working-directory: ./tmp/mgccli-source
       env:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
-        poetry run pytest ${{ inputs.pytest-args }} --ignore=tests/test_auth.py
+        # Executa os testes e captura o output
+        poetry run pytest ${{ inputs.pytest-args }} --ignore=tests/test_auth.py -v 2>&1 | tee test_output.txt
+        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        
+        # Lê o output dos testes
+        TEST_OUTPUT=$(cat test_output.txt)
+        
+        # Define os outputs da action
+        echo "output<<EOF" >> $GITHUB_OUTPUT
+        echo "$TEST_OUTPUT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        echo "exit-code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # Exibe o output no log da action
+        echo "=== OUTPUT DOS TESTES ==="
+        echo "$TEST_OUTPUT"
+        echo "=== FIM DO OUTPUT ==="
+        
+        # Retorna o código de saída dos testes
+        exit $TEST_EXIT_CODE
