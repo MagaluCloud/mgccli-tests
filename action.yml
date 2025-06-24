@@ -91,9 +91,8 @@ runs:
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
         
-        # Executa os testes e captura a saída
         set +e  # Não falha imediatamente em caso de erro
-        output=$(poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1)
+        output=$(poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1 | tee /dev/tty)
         exit_code=$?
         set -e
         
@@ -118,4 +117,4 @@ runs:
         echo "EOF" >> $GITHUB_OUTPUT
         
         # Mantém o exit code original
-        exit $exit_code
+        exit $exit_code 
