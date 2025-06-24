@@ -83,9 +83,8 @@ runs:
         
     - name: Upload test results
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      working-directory: ./tmp/mgccli-source
       with:
         name: pytest-results
-        path: pytest_output.txt
-        retention-days: 1
+        path: ./tmp/mgccli-source/pytest_output.txt
+        retention-days: 2
         
