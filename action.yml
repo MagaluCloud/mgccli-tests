@@ -14,11 +14,14 @@ inputs:
 
 outputs:
   test-output:
-    description: 'Output completo dos testes executados'
-    value: ${{ steps.run-tests.outputs.output }}
-  test-exit-code:
-    description: 'Código de saída dos testes (0 = sucesso, outros = falha)'
-    value: ${{ steps.run-tests.outputs.exit-code }}
+    description: 'Output completo dos testes'
+    value: ${{ steps.run-tests.outputs.test-output }}
+  test-result:
+    description: 'Resultado dos testes (success/failure)'
+    value: ${{ steps.run-tests.outputs.test-result }}
+  test-summary:
+    description: 'Resumo dos testes executados'
+    value: ${{ steps.run-tests.outputs.test-summary }}
 
 runs:
   using: 'composite'
@@ -87,21 +90,32 @@ runs:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
+        
         # Executa os testes e captura a saída
+        set +e  # Não falha imediatamente em caso de erro
         output=$(poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1)
         exit_code=$?
+        set -e
         
-        # Adiciona a saída ao resumo do step
-        echo "## Resultado dos Testes" >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
-        echo "$output" >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
-        
-        # Define as outputs
-        echo "output<<EOF" >> $GITHUB_OUTPUT
+        # Salva o output completo
+        echo "test-output<<EOF" >> $GITHUB_OUTPUT
         echo "$output" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-        echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         
-        # Retorna o código de saída para que o step falhe se os testes falharem
+        # Determina o resultado
+        if [ $exit_code -eq 0 ]; then
+          echo "test-result=success" >> $GITHUB_OUTPUT
+          echo "✅ Testes executados com sucesso"
+        else
+          echo "test-result=failure" >> $GITHUB_OUTPUT
+          echo "❌ Testes falharam"
+        fi
+        
+        # Extrai resumo (últimas linhas do pytest)
+        summary=$(echo "$output" | tail -n 5)
+        echo "test-summary<<EOF" >> $GITHUB_OUTPUT
+        echo "$summary" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        # Mantém o exit code original
         exit $exit_code
