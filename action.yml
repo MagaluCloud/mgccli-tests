@@ -11,18 +11,6 @@ inputs:
     description: 'Argumentos adicionais para passar ao pytest'
     required: false
     default: ''
-
-outputs:
-  test-output:
-    description: 'Output completo dos testes'
-    value: ${{ steps.run-tests.outputs.test-output }}
-  test-result:
-    description: 'Resultado dos testes (success/failure)'
-    value: ${{ steps.run-tests.outputs.test-result }}
-  test-summary:
-    description: 'Resumo dos testes executados'
-    value: ${{ steps.run-tests.outputs.test-summary }}
-
 runs:
   using: 'composite'
   steps:
@@ -90,31 +78,13 @@ runs:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
+        poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py > pytest_output.txt 2>&1
+        echo "exit_code=$?" >> $GITHUB_OUTPUT
         
-        set +e  # Não falha imediatamente em caso de erro
-        output=$(poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1 | tee /dev/tty)
-        exit_code=$?
-        set -e
+    - name: Upload test results
+      uses: actions/upload-artifact@4f13853508778d738daafeade4e66f3c3c90998e
+      with:
+        name: pytest-results
+        path: ./tmp/mgccli-source/pytest_output.txt
+        retention-days: 1
         
-        # Salva o output completo
-        echo "test-output<<EOF" >> $GITHUB_OUTPUT
-        echo "$output" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-        # Determina o resultado
-        if [ $exit_code -eq 0 ]; then
-          echo "test-result=success" >> $GITHUB_OUTPUT
-          echo "✅ Testes executados com sucesso"
-        else
-          echo "test-result=failure" >> $GITHUB_OUTPUT
-          echo "❌ Testes falharam"
-        fi
-        
-        # Extrai resumo (últimas linhas do pytest)
-        summary=$(echo "$output" | tail -n 5)
-        echo "test-summary<<EOF" >> $GITHUB_OUTPUT
-        echo "$summary" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-        # Mantém o exit code original
-        exit $exit_code 
