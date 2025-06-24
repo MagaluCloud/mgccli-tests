@@ -78,13 +78,14 @@ runs:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
-        poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py > pytest_output.txt 2>&1
-        echo "exit_code=$?" >> $GITHUB_OUTPUT
+        poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1 | tee pytest_output.txt
+        echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         
     - name: Upload test results
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      working-directory: ./tmp/mgccli-source
       with:
         name: pytest-results
-        path: ./tmp/mgccli-source/pytest_output.txt
+        path: pytest_output.txt
         retention-days: 1
         
