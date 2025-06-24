@@ -82,7 +82,7 @@ runs:
         echo "exit_code=$?" >> $GITHUB_OUTPUT
         
     - name: Upload test results
-      uses: actions/upload-artifact@4f13853508778d738daafeade4e66f3c3c90998e
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: pytest-results
         path: ./tmp/mgccli-source/pytest_output.txt
