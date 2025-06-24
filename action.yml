@@ -87,24 +87,21 @@ runs:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
-        # Executa os testes e captura o output
-        poetry run pytest ${{ inputs.pytest-args }} --ignore=tests/test_auth.py -v 2>&1 | tee test_output.txt
-        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1 | tee test_output.txt
         
-        # Lê o output dos testes
-        TEST_OUTPUT=$(cat test_output.txt)
+        # Captura o código de saída dos testes
+        exit_code=${PIPESTATUS[0]}
+        echo "exit-code=$exit_code" >> $GITHUB_OUTPUT
         
-        # Define os outputs da action
-        echo "output<<EOF" >> $GITHUB_OUTPUT
-        echo "$TEST_OUTPUT" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        # Captura o conteúdo completo do arquivo de output
+        if [ -f "test_output.txt" ]; then
+          output_content=$(cat test_output.txt)
+          # Escapa o conteúdo para evitar problemas com caracteres especiais
+          output_content=$(echo "$output_content" | sed 's/%/%25/g')
+          output_content=$(echo "$output_content" | sed 's/\r/%0D/g')
+          output_content=$(echo "$output_content" | sed 's/\n/%0A/g')
+          echo "output=$output_content" >> $GITHUB_OUTPUT
+        else
+          echo "output=Arquivo test_output.txt não encontrado" >> $GITHUB_OUTPUT
+        fi
         
-        echo "exit-code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
-        
-        # Exibe o output no log da action
-        echo "=== OUTPUT DOS TESTES ==="
-        echo "$TEST_OUTPUT"
-        echo "=== FIM DO OUTPUT ==="
-        
-        # Retorna o código de saída dos testes
-        exit $TEST_EXIT_CODE
