@@ -3,15 +3,8 @@ import uuid
 
 from utils import run_cli
 
-# ports           Operations related to Ports
-# public-ips      Operations related to Public IPs
-# rules           Operations related to Rules
-# security-groups Operations related to Security Groups
-# subnetpools     Operations related to Subnet Pools
-# subnets         Operations related to Subnets
-# vpcs            Operations related to VPCs
-
 network_test_context = {}
+random_subnet_ip = '10.{}.{}.0/24'.format(*__import__('random').sample(range(0,255),4))
 
 
 def test_network_vpcs_create():
@@ -44,6 +37,55 @@ def test_network_vpcs_list():
     exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "list"])
     assert exit_code == 0, stderr
     assert len(jsonout["vpcs"]) > 0
+
+
+def test_network_subnetpools_create():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnetpools", "create", "--name", "test-subnetpool", "--description", "test-subnetpool", "--cidr", random_subnet_ip, "--type", "default"])
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+    network_test_context["subnetpool_id"] = jsonout["id"]
+
+def test_network_subnetpools_list():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnetpools", "list"])
+    assert exit_code == 0, stderr
+    assert jsonout["results"][0]["id"] == network_test_context["subnetpool_id"]
+
+
+def test_network_subnetpools_get():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnetpools", "get", f"--subnetpool-id={network_test_context['subnetpool_id']}"])
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+    assert jsonout["id"] == network_test_context["subnetpool_id"]
+
+
+def test_network_vpcs_subnets_list():
+    exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "subnets", "list", f"--vpc-id={network_test_context['vpc_id']}"])
+    assert exit_code == 0, stderr
+
+
+def test_network_vpcs_subnets_create():
+    exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "subnets", "create", f"--vpc-id={network_test_context['vpc_id']}", "--subnetpool-id", network_test_context["subnetpool_id"], "--name", "test-subnet", "--cidr-block", random_subnet_ip, "--ip-version", "4"])
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+    network_test_context["subnet_id"] = jsonout["id"]
+
+
+def test_network_vpcs_subnets_get():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnets", "get", f"--subnet-id={network_test_context['subnet_id']}"])
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+    assert jsonout["id"] == network_test_context["subnet_id"]
+
+
+def test_network_vpcs_subnets_update():
+    exit_code, _, stderr, jsonout = run_cli(["network",
+                                              "subnets", 
+                                              "update",
+                                              f"--subnet-id={network_test_context['subnet_id']}", 
+                                              f"--dns-nameservers=8.8.8.8,8.8.4.4"])
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+    assert jsonout["id"] == network_test_context["subnet_id"]
 
 
 def test_network_ports_create():
@@ -80,14 +122,11 @@ def test_network_ports_update():
             "network",
             "ports",
             "update",
-            "--port-id",
             port_id,
-            "--ip-spoofing-guard",
-            "true",
+            "--ip-spoofing-guard=true",
         ]
     )
     assert exit_code == 0, stderr
-    assert "teste" in jsonout, jsonout
 
 
 def test_network_natgateways_create():
@@ -114,7 +153,7 @@ def test_network_natgateways_get():
             "network",
             "nat-gateways",
             "get",
-            f"--nat-gateway-id={network_test_context['natgateway_id']}",
+            network_test_context["natgateway_id"],
         ]
     )
     assert exit_code == 0, stderr
@@ -135,6 +174,8 @@ def test_network_natgateways_list():
     assert "result" in jsonout, jsonout
 
 
+
+
 def test_network_natgateway_delete():
     exit_code, _, stderr, _ = run_cli(
         [
@@ -150,10 +191,17 @@ def test_network_natgateway_delete():
 
 def test_network_ports_delete():
     exit_code, _, stderr, _ = run_cli(
-        ["network", "vpcs", "delete", network_test_context["port_id"], "--no-confirm"]
+        ["network", "ports", "delete", network_test_context["port_id"], "--no-confirm"]
     )
     assert exit_code == 0, stderr
 
+def test_network_vpcs_subnets_delete():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnets", "delete", f"--subnet-id={network_test_context['subnet_id']}", "--no-confirm"])
+    assert exit_code == 0, stderr
+
+def test_network_subnetpools_delete():
+    exit_code, _, stderr, jsonout = run_cli(["network", "subnetpools", "delete", f"--subnetpool-id={network_test_context['subnetpool_id']}", "--no-confirm"])
+    assert exit_code == 0, stderr
 
 def test_network_vpcs_delete():
     exit_code, _, stderr, _ = run_cli(

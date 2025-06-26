@@ -1,8 +1,14 @@
-run-all:
+test-all:
 	MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest
 
-run-lbaas:
+test-lbaas:
 	MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_lbaas.py
 
-run-ci: 
+test-dbaas:
+	MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_dbaas.py
+
+test-network:
+	MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_network.py -v
+
+test-ci: 
 	MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest --tb=short --ignore=tests/test_auth.py 
