@@ -1,4 +1,6 @@
 from utils import run_cli
+import os
+import pytest
 
 test_auth_context = {}
 

@@ -47,7 +47,7 @@ def run_cli(args: List[str]) -> tuple[int, str, str, Dict]:
     except json.JSONDecodeError:
         json_output = {}
 
-    if (result.returncode != 0 and MGC_PRINT_COMMAND):
+    if result.returncode != 0 and MGC_PRINT_COMMAND:
         print(f"Erro ao executar comando:")
         print(format_command_for_display(command))
         print()

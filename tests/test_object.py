@@ -8,10 +8,11 @@ bucket_name = "mgc-cli-tests-temp"
 
 MGC_API_KEY = os.environ.get("MGC_API_KEY")
 
+
 def test_objs_api_key_list():
     # skip if MGC_PATH is set
     if not MGC_API_KEY:
-        exit_code, _, stderr, jsonout = run_cli(["os", "api-key", "list"])
+        exit_code, _, stderr, jsonout = run_cli(["object-storage", "api-key", "list"])
         assert exit_code == 0, stderr
         assert len(jsonout) > 0
 
@@ -27,7 +28,7 @@ def test_objs_api_key_set():
 
 
 def test_objs_buckets_create():
-    exit_code, _, stderr, jsonout = run_cli(["os", "buckets", "create", bucket_name])
+    exit_code, _, stderr, jsonout = run_cli(["object-storage", "buckets", "create", bucket_name])
     assert exit_code == 0, stderr
     assert "bucket" in jsonout
     assert "bucket_is_prefix" in jsonout
@@ -35,7 +36,7 @@ def test_objs_buckets_create():
 
 
 def test_objs_buckets_list():
-    exit_code, _, stderr, jsonout = run_cli(["os", "buckets", "list"])
+    exit_code, _, stderr, jsonout = run_cli(["object-storage", "buckets", "list"])
     assert exit_code == 0, stderr
     assert len(jsonout["Buckets"]) > 0
 
