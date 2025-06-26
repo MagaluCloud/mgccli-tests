@@ -25,6 +25,14 @@ runs:
           echo "❌ MGC_PATH não está definida"
           exit 1
         fi
+        if [ -z "$MGC_OBJ_KEY_ID" ]; then
+          echo "❌ MGC_OBJ_KEY_ID não está definida"
+          exit 1
+        fi
+        if [ -z "$MGC_OBJ_KEY_SECRET" ]; then
+          echo "❌ MGC_OBJ_KEY_SECRET não está definida"
+          exit 1
+        fi        
         echo "✅ Variáveis de ambiente validadas"
         
     - name: Resolve MGC_PATH
@@ -78,7 +86,7 @@ runs:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
         echo "Executando testes com MGC_PATH: $MGC_PATH"
-        poetry run pytest ${{ inputs.pytest-args }} --tb=short --ignore=tests/test_auth.py 2>&1 | tee pytest_output.txt
+        poetry run pytest ${{ inputs.pytest-args }} --tb=short -v --ignore=tests/test_auth.py 2>&1 | tee pytest_output.txt
         echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         
     - name: Upload test results
