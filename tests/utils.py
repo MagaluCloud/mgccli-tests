@@ -30,8 +30,9 @@ def format_command_for_display(command: List[str]) -> str:
         else:
             formatted_part = part
         
+        formatted_part = formatted_part.replace(MGC_API_KEY, "[REDACTED]")
         formatted_parts.append(formatted_part)
-    
+
     return " ".join(formatted_parts)
 
 def run_cli(args: List[str]) -> tuple[int, str, str, Dict]:
