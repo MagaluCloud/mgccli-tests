@@ -54,3 +54,24 @@ def run_cli(args: List[str]) -> tuple[int, str, str, Dict]:
         print()
 
     return result.returncode, result.stdout, result.stderr, json_output
+
+
+def run_cli_with_timeout(args: List[str], timeout: int = None) -> tuple[int, str, str, Dict]:
+    """Run CLI command and return exit code, plain text output and parsed JSON output."""
+    command = [MGC_PATH] + args + ["--output=json", "--raw"]
+    
+    if not timeout:
+        raise ValueError("Timeout is required")
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # Se o timeout for excedido, retornamos um código de erro e mensagem apropriada
+        return 1, "", "Command execution timed out", {}
+
+    try:
+        json_output = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        json_output = {}
+
+    return result.returncode, result.stdout, result.stderr, json_output
