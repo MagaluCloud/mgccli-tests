@@ -13,6 +13,12 @@ test-network:
 test-object:
 	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_object.py --tb=short -v
 
+test-profile:
+	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_profile.py --tb=short -v
+
+test-vm:
+	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_vm.py --tb=short -v
+
 test-workspace:
 	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_workspace.py --tb=short -v
 

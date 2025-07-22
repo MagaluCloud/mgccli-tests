@@ -1,5 +1,5 @@
 import time
-
+import random
 from utils import run_cli
 
 vm_test_context = {}
@@ -11,7 +11,7 @@ def _get_vm(vm_id):
 
 def test_create_ssh_key():
     key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK0wmN/Cr3JXqmLW7u+g9pTh+wyqDHpSQEIQczXkVx9q not_really@a.key"
-    key_name = "cli-test-key"
+    key_name = f"cli-test-key-{random.randint(1000, 9999)}"
     exit_code, _, stderr, jsonout = run_cli(
         ["profile", "ssh-keys", "create", f"--name={key_name}", f"--key={key}"]
     )
