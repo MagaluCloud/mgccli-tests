@@ -1,9 +1,11 @@
 from utils import run_cli
+import random
 
 test_profile_context = {}
 
 PUBLIC_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK0wmN/Cr3JXqmLW7u+g9pTh+wyqDHpSQEIQczXkVx9q not_really@a.key"
 
+ssh_key_random_name = f"cli-test-key-{random.randint(1000, 9999)}"
 
 def test_profile_availability_zones_list():
     exit_code, _, _, jsonout = run_cli(["profile", "availability_zones", "list"])
@@ -14,12 +16,12 @@ def test_profile_availability_zones_list():
 
 def test_profile_ssh_keys_create():
     exit_code, _, _, jsonout = run_cli(
-        ["profile", "ssh-keys", "create", "--name=cli-test-key", f"--key={PUBLIC_KEY}"]
+        ["profile", "ssh-keys", "create", f"--name={ssh_key_random_name}", f"--key={PUBLIC_KEY}"]
     )
     assert exit_code == 0
     assert "id" in jsonout
     test_profile_context["key_id"] = jsonout["id"]
-
+    
 
 def test_profile_ssh_keys_create_fails_with_invalid_chars():
     exit_code, _, stderr, _ = run_cli(
