@@ -29,8 +29,8 @@ def format_command_for_display(command: List[str]) -> str:
                 formatted_part = part.replace('"', '\\"')
         else:
             formatted_part = part
-        
-        formatted_part = formatted_part.replace(MGC_API_KEY, "[REDACTED]")
+        if MGC_API_KEY:
+            formatted_part = formatted_part.replace(MGC_API_KEY, "[REDACTED]")
         formatted_parts.append(formatted_part)
 
     return " ".join(formatted_parts)
@@ -48,8 +48,8 @@ def run_cli(args: List[str]) -> tuple[int, str, str, Dict]:
     except json.JSONDecodeError:
         json_output = {}
 
-    if result.returncode != 0 and MGC_PRINT_COMMAND:
-        print(f"Erro ao executar comando:")
+    if result.returncode != 0 or MGC_PRINT_COMMAND:
+        print(f"Command:")
         print(format_command_for_display(command))
         print()
 
