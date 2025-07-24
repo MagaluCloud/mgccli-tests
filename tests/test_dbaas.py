@@ -18,6 +18,13 @@ def _wait_for_instance_running_state(instance_id):
 
     assert jsonout["status"] == "ACTIVE"
 
+def _wait_for_instance_ready_to_be_deleted(instance_id):
+    _, _, _, jsonout = _get_instance(instance_id)
+    while jsonout["status"] in [ "BACKING_UP"]:
+        time.sleep(5)
+        _, _, _, jsonout = _get_instance(instance_id)
+
+
 
 def test_dbaas_engines_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "engines", "list"])
@@ -132,6 +139,48 @@ def test_dbaas_instances_list():
     assert len(jsonout["results"]) > 0
 
 
+def test_dbaas_set_protection():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "instances",
+            "update",
+            dbaas_test_context["instance_id"],
+            "--deletion-protected=true",
+        ]
+    )
+    assert exit_code == 0, stderr
+
+def test_dbaas_delete_protected_instance():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "instances",
+            "delete",
+            dbaas_test_context["instance_id"],
+            "--no-confirm",
+        ]
+    )
+
+    assert exit_code == 1, stderr
+
+
+def test_dbaas_unset_protection():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "instances",
+            "update",
+            dbaas_test_context["instance_id"],  
+            "--deletion-protected=false",
+        ]
+    )
+    assert exit_code == 0, stderr
+
+
+
+
+
 def test_dbaas_instances_get():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "instances", "get", dbaas_test_context["instance_id"]]
@@ -154,6 +203,46 @@ def test_dbaas_instances_get():
     assert "updated_at" in jsonout
     assert "volume" in jsonout
 
+def test_dbaas_create_snapshot():
+    ## mgc dbaas snapshots instances-snapshots create --description="my-description" --name="my-snapshot"
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "snapshots",
+            "instances-snapshots",
+            "create",
+            f"--instance-id={dbaas_test_context['instance_id']}",
+            f"--description=my-description-{random.randint(1, 10000)}",
+            f"--name=my-snapshot-{random.randint(1, 10000)}",
+        ]
+    )
+    assert exit_code == 0, stderr
+
+    dbaas_test_context["snapshot_id"] = jsonout["id"]
+
+
+def test_dbaas_replicas_create():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "replicas",
+            "create",
+            f"--source-id={dbaas_test_context['instance_id']}",
+            f"--name=replica-{random.randint(1, 10000)}",
+        ]
+    )
+    assert exit_code == 0, stderr
+
+    dbaas_test_context["replica_id"] = jsonout["id"]
+
+    _wait_for_instance_running_state(jsonout["id"])
+
+def test_dbaas_replicas_get():
+    exit_code, _, stderr, jsonout = run_cli(
+        ["dbaas", "replicas", "get", dbaas_test_context["replica_id"]]
+    )
+    assert exit_code == 0, stderr
+    
 
 def test_dbaas_replicas_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "replicas", "list"])
@@ -161,6 +250,7 @@ def test_dbaas_replicas_list():
     assert exit_code == 0, stderr
     assert "results" in jsonout
     assert "meta" in jsonout
+
 
 
 def test_dbaas_clusters_list():
@@ -171,7 +261,39 @@ def test_dbaas_clusters_list():
     assert "meta" in jsonout
 
 
+def test_dbaas_replicas_delete():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "replicas",
+            "delete",
+            dbaas_test_context["replica_id"],
+            "--no-confirm",
+        ]
+    )
+
+    assert exit_code == 0, stderr
+
+
+def test_dbaas_delete_snapshot():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "dbaas",
+            "snapshots",
+            "instances-snapshots",
+            "delete",
+            f"--instance-id={dbaas_test_context['instance_id']}",
+            f"--snapshot-id={dbaas_test_context['snapshot_id']}",
+            "--no-confirm",
+        ]
+    )
+    assert exit_code == 0, stderr
+
+
+
 def test_dbaas_instances_delete():
+    _wait_for_instance_ready_to_be_deleted(dbaas_test_context["instance_id"])
+    
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
@@ -183,3 +305,4 @@ def test_dbaas_instances_delete():
     )
 
     assert exit_code == 0, stderr
+

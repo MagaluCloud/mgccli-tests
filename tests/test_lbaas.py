@@ -1,4 +1,5 @@
 import time
+import random
 
 from utils import run_cli
 
@@ -32,7 +33,7 @@ def test_lb_network_loadbalancers_create():
             "lb",
             "network-loadbalancers",
             "create",
-            "--name=nlb-test",
+            f"--name=nlb-test-{random.randint(1, 10000)}",
             "--visibility=internal",
             f"--vpc-id={_get_default_vpc()}",
             '--backends=[{"balance_algorithm":"round_robin","description":"Some optional backend description 1","name":"nlb-backend-1","port":1344,"targets_type":"instance"}]',
@@ -79,7 +80,7 @@ def test_lb_network_healthchekcs_create():
             "network-healthchecks",
             "create",
             f"--load-balancer-id={lbaas_test_context['nlb_id']}",
-            "--name=another-hc",
+            f"--name=nhc-test-{random.randint(1, 10000)}",
             "--path='/test'",
             "--port=81",
             "--protocol=http",
@@ -101,7 +102,7 @@ def test_lb_network_backends_create():
             "network-backends",
             "create",
             f"--load-balancer-id={lbaas_test_context['nlb_id']}",
-            "--name=another-be",
+            f"--name=nbe-test-{random.randint(1, 10000)}",
             "--balance-algorithm=round_robin",
             "--targets-type=instance",
         ]
@@ -123,7 +124,7 @@ def test_lb_network_listeners_create():
             "create",
             f"--backend-id={lbaas_test_context['be_id']}",
             f"--load-balancer-id={lbaas_test_context['nlb_id']}",
-            "--name=another-listener",
+            f"--name=nlistener-test-{random.randint(1, 10000)}",
             "--port=81",
             "--protocol=tcp",
         ]
