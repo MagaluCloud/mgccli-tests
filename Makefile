@@ -22,5 +22,8 @@ test-vm:
 test-workspace:
 	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_workspace.py --tb=short -v
 
+test-regression:
+	@MGC_PRINT_COMMAND=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest tests/test_regression.py --tb=short -v
+
 test-ci: 
 	@MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) poetry run pytest --ignore=tests/test_auth.py --tb=short -v
