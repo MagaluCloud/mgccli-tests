@@ -10,6 +10,23 @@ def _get_instance(instance_id):
     return run_cli(["dbaas", "instances", "get", instance_id])
 
 
+def _get_replica(replica_id):
+    return run_cli(["dbaas", "replicas", "get", replica_id])
+
+
+def _get_instance_snapshot(instance_id, snap_id):
+    return run_cli(
+        [
+            "dbaas",
+            "snapshots",
+            "instances-snapshots",
+            "get",
+            f"--instance-id={instance_id}",
+            f"--snapshot-id={snap_id}",
+        ]
+    )
+
+
 def _wait_for_instance_running_state(instance_id):
     _, _, _, jsonout = _get_instance(instance_id)
     while jsonout["status"] not in ["ACTIVE", "ERROR"]:
@@ -18,12 +35,30 @@ def _wait_for_instance_running_state(instance_id):
 
     assert jsonout["status"] == "ACTIVE"
 
+
+def _wait_for_replica_running_state(replica_id):
+    _, _, _, jsonout = _get_replica(replica_id)
+    while jsonout["status"] not in ["ACTIVE", "ERROR"]:
+        time.sleep(5)
+        _, _, _, jsonout = _get_replica(replica_id)
+
+    assert jsonout["status"] == "ACTIVE"
+
+
+def _wait_for_instance_snapshot_to_be_available(instance_id, snap_id):
+    _, _, _, jsonout = _get_instance_snapshot(instance_id, snap_id)
+    while jsonout["status"] not in ["AVAILABLE", "ERROR"]:
+        time.sleep(5)
+        _, _, _, jsonout = _get_instance_snapshot(instance_id, snap_id)
+
+    assert jsonout["status"] == "AVAILABLE"
+
+
 def _wait_for_instance_ready_to_be_deleted(instance_id):
     _, _, _, jsonout = _get_instance(instance_id)
-    while jsonout["status"] in [ "BACKING_UP"]:
+    while jsonout["status"] in ["BACKING_UP"]:
         time.sleep(5)
         _, _, _, jsonout = _get_instance(instance_id)
-
 
 
 def test_dbaas_engines_list():
@@ -58,7 +93,9 @@ def test_dbaas_engines_get():
 
 
 def test_dbaas_instance_types_list():
-    exit_code, _, stderr, jsonout = run_cli(["dbaas", "instance-types", "list", "--status=ACTIVE"])
+    exit_code, _, stderr, jsonout = run_cli(
+        ["dbaas", "instance-types", "list", "--status=ACTIVE"]
+    )
     assert exit_code == 0, stderr
     assert "results" in jsonout
     assert len(jsonout["results"]) > 0
@@ -79,7 +116,7 @@ def test_dbaas_instance_types_list():
             dbaas_test_context["single_instance_type_id"] = it["id"]
         if it["compatible_product"] == "CLUSTER":
             dbaas_test_context["cluster_instance_type_id"] = it["id"]
-    
+
     assert dbaas_test_context["single_instance_type_id"]
     # assert dbaas_test_context["cluster_instance_type_id"]
 
@@ -139,7 +176,7 @@ def test_dbaas_instances_list():
     assert len(jsonout["results"]) > 0
 
 
-def test_dbaas_set_protection():
+def test_dbaas_instances_set_protection():
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
@@ -151,7 +188,8 @@ def test_dbaas_set_protection():
     )
     assert exit_code == 0, stderr
 
-def test_dbaas_delete_protected_instance():
+
+def test_dbaas_instances_delete_protected():
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
@@ -165,20 +203,17 @@ def test_dbaas_delete_protected_instance():
     assert exit_code == 1, stderr
 
 
-def test_dbaas_unset_protection():
+def test_dbaas_instances_unset_protection():
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
             "instances",
             "update",
-            dbaas_test_context["instance_id"],  
+            dbaas_test_context["instance_id"],
             "--deletion-protected=false",
         ]
     )
     assert exit_code == 0, stderr
-
-
-
 
 
 def test_dbaas_instances_get():
@@ -203,8 +238,8 @@ def test_dbaas_instances_get():
     assert "updated_at" in jsonout
     assert "volume" in jsonout
 
-def test_dbaas_create_snapshot():
-    ## mgc dbaas snapshots instances-snapshots create --description="my-description" --name="my-snapshot"
+
+def test_dbaas_snapshots_instance_snapshots_create():
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
@@ -220,6 +255,10 @@ def test_dbaas_create_snapshot():
 
     dbaas_test_context["snapshot_id"] = jsonout["id"]
 
+    _wait_for_instance_snapshot_to_be_available(
+        dbaas_test_context["instance_id"], jsonout["id"]
+    )
+
 
 def test_dbaas_replicas_create():
     exit_code, _, stderr, jsonout = run_cli(
@@ -234,15 +273,17 @@ def test_dbaas_replicas_create():
     assert exit_code == 0, stderr
 
     dbaas_test_context["replica_id"] = jsonout["id"]
+    print(f"create replica: {jsonout}")
 
-    _wait_for_instance_running_state(jsonout["id"])
+    _wait_for_replica_running_state(jsonout["id"])
+
 
 def test_dbaas_replicas_get():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "replicas", "get", dbaas_test_context["replica_id"]]
     )
     assert exit_code == 0, stderr
-    
+
 
 def test_dbaas_replicas_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "replicas", "list"])
@@ -250,7 +291,6 @@ def test_dbaas_replicas_list():
     assert exit_code == 0, stderr
     assert "results" in jsonout
     assert "meta" in jsonout
-
 
 
 def test_dbaas_clusters_list():
@@ -290,10 +330,9 @@ def test_dbaas_delete_snapshot():
     assert exit_code == 0, stderr
 
 
-
 def test_dbaas_instances_delete():
     _wait_for_instance_ready_to_be_deleted(dbaas_test_context["instance_id"])
-    
+
     exit_code, _, stderr, jsonout = run_cli(
         [
             "dbaas",
@@ -305,4 +344,3 @@ def test_dbaas_instances_delete():
     )
 
     assert exit_code == 0, stderr
-
