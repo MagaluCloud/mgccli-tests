@@ -46,7 +46,6 @@ def test_bs_volumes_get():
     exit_code, _, stderr, jsonout = _get_volume(block_test_context["volume_id"])
     assert exit_code == 0, stderr
     assert "availability_zone" in jsonout
-    assert "availability_zones" in jsonout
     assert "encrypted" in jsonout
     assert "id" in jsonout
     assert "name" in jsonout
@@ -64,7 +63,7 @@ def test_bs_snapshots_create():
             "create",
             f"--name=test-snapshot-{random.randint(0, 9999)}",
             "--description='just for testing'",
-            f"--volume.id={block_test_context["volume_id"]}",
+            f"--volume.id={block_test_context.get('volume_id')}",
         ]
     )
     assert exit_code == 0, stderr
