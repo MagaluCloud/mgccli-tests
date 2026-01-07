@@ -30,19 +30,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Install Magalu Cloud CLI (mgc)
+            - name: Install Magalu Cloud CLI (via APT)
         run: |
-          curl -sL https://storage.googleapis.com/mgc-cli/install.sh | bash
-          # Adiciona o diretório da CLI ao PATH do GitHub Actions
-          echo "$HOME/.mgc/bin" >> $GITHUB_PATH
+          sudo mkdir -p /etc/apt/keyrings
+          sudo gpg --yes --keyserver keyserver.ubuntu.com --recv-keys 0C59E21A5CB00594
+          sudo gpg --export --armor 0C59E21A5CB00594 | sudo gpg --dearmor -o /etc/apt/keyrings/magalu-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/magalu-archive-keyring.gpg] https://packages.magalu.cloud/apt stable main" | sudo tee /etc/apt/sources.list.d/magalu.list
+          sudo apt update
+          sudo apt install -y mgccli
 
-      - name: Verify MGC_API_KEY
+      - name: Verify MGC_API_KEY and CLI
         run: |
           if [ -z "$MGC_API_KEY" ]; then
-            echo "Error: MGC_API_KEY is not set. Please add it to GitHub Secrets."
+            echo "Error: MGC_API_KEY is not set in GitHub Secrets."
             exit 1
           fi
-          echo "MGC_API_KEY is present. Proceeding..."
+          mgc --version
 
       - name: Run tests
         run: uv run pytest --html=report.html --self-contained-html
