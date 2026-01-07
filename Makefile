@@ -15,34 +15,34 @@ ensure-deps:
 		fi )
 
 test: ensure-deps
-	@MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest --html=report.html --self-contained-html
+	@MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest --html=report.html --self-contained-html
 
 test-auth: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_auth.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_auth.py
 
 test-block: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_block.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_block.py
 
 test-dbaas: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_dbaas.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_dbaas.py
 
 test-lbaas: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_lbaas.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_lbaas.py
 
 test-network: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_network.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_network.py
 
 test-object: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_object.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_object.py
 
 test-profile: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_profile.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_profile.py
 
 test-regression: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_regression.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_regression.py
 
 test-vm: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_vm.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_vm.py
 
 test-workspace: ensure-deps
-	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=${MGC_PATH:-mgc} uv run pytest tests/test_workspace.py
+	@MGC_VERBOSE=True MGC_API_KEY=$(MGC_API_KEY) MGC_PATH=$(MGC_PATH) uv run pytest tests/test_workspace.py
