@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    name: Run Pytest
+    name: Run Pytest via Make
     runs-on: ubuntu-latest
     
     env:
@@ -48,7 +48,7 @@ jobs:
           mgc --version
 
       - name: Run tests
-        run: uv run pytest --html=report.html --self-contained-html
+        run: make test
 
       - name: Upload Test Report
         if: always()
