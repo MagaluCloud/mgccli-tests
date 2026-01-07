@@ -1,0 +1,56 @@
+name: CI Tests with MGC
+
+on:
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    
+    env:
+      MGC_API_KEY: ${{ secrets.MGC_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Install Magalu Cloud CLI (mgc)
+        run: |
+          curl -sL https://storage.googleapis.com/mgc-cli/install.sh | bash
+          # Adiciona o diretório da CLI ao PATH do GitHub Actions
+          echo "$HOME/.mgc/bin" >> $GITHUB_PATH
+
+      - name: Verify MGC_API_KEY
+        run: |
+          if [ -z "$MGC_API_KEY" ]; then
+            echo "Error: MGC_API_KEY is not set. Please add it to GitHub Secrets."
+            exit 1
+          fi
+          echo "MGC_API_KEY is present. Proceeding..."
+
+      - name: Run tests
+        run: uv run pytest --html=report.html --self-contained-html
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-html-report
+          path: report.html
+          retention-days: 7
