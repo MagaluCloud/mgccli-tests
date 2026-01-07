@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-            - name: Install Magalu Cloud CLI (via APT)
+      - name: Install Magalu Cloud CLI (via APT)
         run: |
           sudo mkdir -p /etc/apt/keyrings
           sudo gpg --yes --keyserver keyserver.ubuntu.com --recv-keys 0C59E21A5CB00594
