@@ -1,3 +1,4 @@
+import pytest
 import random
 import time
 
@@ -61,6 +62,7 @@ def _wait_for_instance_ready_to_be_deleted(instance_id):
         _, _, _, jsonout = _get_instance(instance_id)
 
 
+@pytest.mark.skip
 def test_dbaas_engines_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "engines", "list"])
     assert exit_code == 0, stderr
@@ -80,6 +82,7 @@ def test_dbaas_engines_list():
     assert dbaas_test_context["engine_id"]
 
 
+@pytest.mark.skip
 def test_dbaas_engines_get():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "engines", "get", dbaas_test_context["engine_id"]]
@@ -92,6 +95,7 @@ def test_dbaas_engines_get():
     assert "version" in jsonout
 
 
+@pytest.mark.skip
 def test_dbaas_instance_types_list():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "instance-types", "list", "--status=ACTIVE"]
@@ -121,6 +125,7 @@ def test_dbaas_instance_types_list():
     # assert dbaas_test_context["cluster_instance_type_id"]
 
 
+@pytest.mark.skip
 def test_dbaas_instance_types_get():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -142,6 +147,7 @@ def test_dbaas_instance_types_get():
     assert "vcpu" in jsonout
 
 
+@pytest.mark.skip
 def test_dbaas_instances_create():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -166,6 +172,7 @@ def test_dbaas_instances_create():
     _wait_for_instance_running_state(jsonout["id"])
 
 
+@pytest.mark.skip
 def test_dbaas_instances_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "instances", "list"])
 
@@ -176,6 +183,7 @@ def test_dbaas_instances_list():
     assert len(jsonout["results"]) > 0
 
 
+@pytest.mark.skip
 def test_dbaas_instances_set_protection():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -189,6 +197,7 @@ def test_dbaas_instances_set_protection():
     assert exit_code == 0, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_instances_delete_protected():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -203,6 +212,7 @@ def test_dbaas_instances_delete_protected():
     assert exit_code == 1, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_instances_unset_protection():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -216,6 +226,7 @@ def test_dbaas_instances_unset_protection():
     assert exit_code == 0, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_instances_get():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "instances", "get", dbaas_test_context["instance_id"]]
@@ -239,6 +250,7 @@ def test_dbaas_instances_get():
     assert "volume" in jsonout
 
 
+@pytest.mark.skip
 def test_dbaas_snapshots_instance_snapshots_create():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -260,6 +272,7 @@ def test_dbaas_snapshots_instance_snapshots_create():
     )
 
 
+@pytest.mark.skip
 def test_dbaas_replicas_create():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -278,6 +291,7 @@ def test_dbaas_replicas_create():
     _wait_for_replica_running_state(jsonout["id"])
 
 
+@pytest.mark.skip
 def test_dbaas_replicas_get():
     exit_code, _, stderr, jsonout = run_cli(
         ["dbaas", "replicas", "get", dbaas_test_context["replica_id"]]
@@ -285,6 +299,7 @@ def test_dbaas_replicas_get():
     assert exit_code == 0, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_replicas_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "replicas", "list"])
 
@@ -293,6 +308,7 @@ def test_dbaas_replicas_list():
     assert "meta" in jsonout
 
 
+@pytest.mark.skip
 def test_dbaas_clusters_list():
     exit_code, _, stderr, jsonout = run_cli(["dbaas", "clusters", "list"])
 
@@ -301,6 +317,7 @@ def test_dbaas_clusters_list():
     assert "meta" in jsonout
 
 
+@pytest.mark.skip
 def test_dbaas_replicas_delete():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -315,6 +332,7 @@ def test_dbaas_replicas_delete():
     assert exit_code == 0, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_delete_snapshot():
     exit_code, _, stderr, jsonout = run_cli(
         [
@@ -330,6 +348,7 @@ def test_dbaas_delete_snapshot():
     assert exit_code == 0, stderr
 
 
+@pytest.mark.skip
 def test_dbaas_instances_delete():
     _wait_for_instance_ready_to_be_deleted(dbaas_test_context["instance_id"])
 

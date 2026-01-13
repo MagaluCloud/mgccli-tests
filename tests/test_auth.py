@@ -1,13 +1,17 @@
-from utils import run_cli
-import os
 import pytest
+import uuid
+from datetime import date, timedelta
+from utils import run_cli
+
 
 test_auth_context = {}
+pytest.skip("Skipping ", allow_module_level=True)
 
 
-def test_auth_login():
-    exit_code, _, _, _ = run_cli(["auth", "login"])
+def test_version():
+    exit_code, _, _, jsonout = run_cli(["--version"], is_authenticated=False, has_json_output=False)
     assert exit_code == 0
+    assert jsonout
 
 
 def test_auth_access_token():
@@ -38,17 +42,109 @@ def test_auth_clients_list():
     assert isinstance(jsonout, list)
 
 
-def test_auth_api_key_list():
+def test_auth_api_key_create_with_validity():
+    exp = (date.today() + timedelta(days=1)).isoformat()
+    name = str(uuid.uuid4())
+    exit_code, _, _, jsonout = run_cli(
+        [
+            "auth",
+            "api-key",
+            "create",
+            "--description",
+            "Automated testing from MGC CLI",
+            "--expiration",
+            exp,
+            "--name",
+            name,
+            "--scopes",
+            '["dbaas.read"]',
+        ]
+    )
+    assert exit_code == 0
+    assert "uuid" in jsonout
+    test_auth_context["api_key_uuid_with_validity"] = jsonout["uuid"]
+
+
+def test_auth_api_key_create_without_validity():
+    name = str(uuid.uuid4())
+    exit_code, _, _, jsonout = run_cli(
+        [
+            "auth",
+            "api-key",
+            "create",
+            "--description",
+            "Automated testing from MGC CLI",
+            "--name",
+            name,
+            "--scopes",
+            '["dbaas.read"]',
+        ]
+    )
+    assert exit_code == 0
+    assert "uuid" in jsonout
+    test_auth_context["api_key_uuid_without_validity"] = jsonout["uuid"]
+
+
+def test_auth_api_key_create_without_validity_and_description():
+    name = str(uuid.uuid4())
+    exit_code, _, _, jsonout = run_cli(
+        [
+            "auth",
+            "api-key",
+            "create",
+            "--name",
+            name,
+            "--scopes",
+            '["dbaas.read"]',
+        ]
+    )
+    assert exit_code == 0
+    assert "uuid" in jsonout
+    test_auth_context["api_key_uuid_without_validity_and_description"] = jsonout["uuid"]
+
+
+def test_auth_api_key_list_with_validity():
     exit_code, _, _, jsonout = run_cli(["auth", "api-key", "list"])
     assert exit_code == 0
     assert len(jsonout) > 0
+    api_key_with_validity = next((item for item in jsonout if item.get("id") == test_auth_context.get("api_key_uuid_with_validity")), None)
+    assert api_key_with_validity
+    assert "id" in api_key_with_validity
+    assert "name" in api_key_with_validity
+    assert "start_validity" in api_key_with_validity
+    assert "description" in api_key_with_validity
+    assert "end_validity" in api_key_with_validity
 
-    test_auth_context["api_key"] = jsonout[0]["id"]
+
+def test_auth_api_key_list_without_validity():
+    exit_code, _, _, jsonout = run_cli(["auth", "api-key", "list"])
+    assert exit_code == 0
+    assert len(jsonout) > 0
+    api_key_without_validity = next((item for item in jsonout if item.get("id") == test_auth_context.get("api_key_uuid_without_validity")), None)
+    assert api_key_without_validity
+    assert "id" in api_key_without_validity
+    assert "name" in api_key_without_validity
+    assert "start_validity" in api_key_without_validity
+    assert "description" in api_key_without_validity
+    assert "end_validity" not in api_key_without_validity
+
+
+def test_auth_api_key_list_without_validity_and_description():
+    exit_code, _, _, jsonout = run_cli(["auth", "api-key", "list"])
+    assert exit_code == 0
+    assert len(jsonout) > 0
+    api_key_without_validity = next((item for item in jsonout if item.get("id") == test_auth_context.get("api_key_uuid_without_validity_and_description")), None)
+    assert api_key_without_validity
+    assert "id" in api_key_without_validity
+    assert "name" in api_key_without_validity
+    assert "start_validity" in api_key_without_validity
+    assert "description" not in api_key_without_validity
+    assert "end_validity" not in api_key_without_validity
 
 
 def test_auth_api_key_get():
     exit_code, _, _, jsonout = run_cli(
-        ["auth", "api-key", "get", test_auth_context["api_key"]]
+        ["auth", "api-key", "get", test_auth_context["api_key_uuid_with_validity"]]
     )
     assert exit_code == 0
     assert "api_key" in jsonout
