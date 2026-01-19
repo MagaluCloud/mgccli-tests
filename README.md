@@ -1,15 +1,67 @@
 # mgc-cli-tests
-funcional tests on Magalu Cloud CLI
+
+Functional tests for Magalu Cloud CLI.
 
 ## Requirements
-- python 3.12
-- poetry
-- [MGC CLI](https://github.com/MagaluCloud/mgccli/) on path (or configured via `MGC_PATH` env var)
 
-## How to run
+- Python 3.10 or higher
+- uv (Astral's package manager)
+- Make
+- [MGC CLI](https://github.com/MagaluCloud/mgccli/) in PATH (or configure via the `MGC_PATH` environment variable)
 
-```bash
-poetry run pytest
+## Installation and setup
+
+Option A — Manual:
+1. Install uv following the official instructions: https://github.com/astral-sh/uv
+   - Example (Linux/Mac):
+     ```
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     ```
+   - Restart your terminal after installation.
+2. In the project directory, run:
+   ```
+   uv sync
+   uv run pytest --html=report.html --self-contained-html
+   ```
+3. To run individual test targets:
+   ```
+   uv run pytest tests/test_auth.py
+   uv run pytest tests/test_block.py
+   ...
+   ```
+
+Option B — Automatic (using the Makefile):
+1. Run:
+   ```
+   make test
+   ```
+   - The Makefile checks for python3 and curl and attempts to install `uv` via curl into `~/.local/bin/uv` if not present.
+   - If the Makefile installs `uv` to `~/.local/bin`, ensure `~/.local/bin` is in your PATH, e.g.:
+     ```
+     export PATH=$HOME/.local/bin:$PATH
+     ```
+2. To run individual test targets:
+   ```
+   make test-auth
+   make test-block
+   ...
+   ```
+
+## HTML report
+
+- The `make test` target generates a self-contained HTML report named `report.html`.
+- Open `report.html` in your browser after the run to review results.
+
+## How to run without the Makefile
+
+To run all tests:
+```
+uv run pytest
+```
+
+To run a specific test file:
+```
+uv run pytest tests/test_lbaas.py
 ```
 
 ## Modules tested

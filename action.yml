@@ -1,5 +1,5 @@
 name: 'MGCCLI Tests'
-description: 'Executa testes para mgccli usando Poetry e Pytest'
+description: 'Executa testes para mgccli usando Astral UV e Pytest'
 author: 'MagaluCloud'
 
 inputs:
@@ -67,17 +67,17 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
         
-    - name: Install Poetry
-      uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
-      with:
-        version: 1.8.4
+    - name: Install Astral UV
+      shell: bash
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
         
     - name: Install dependencies
       shell: bash
       working-directory: ./tmp/mgccli-source
       run: |
-        poetry install --no-interaction
-        
+        uv sync
+
     - name: Run tests
       id: run-tests
       shell: bash
@@ -85,15 +85,16 @@ runs:
       env:
         MGC_PATH: ${{ env.MGC_PATH_RESOLVED }}
       run: |
-        echo "Executando testes com MGC_PATH: $MGC_PATH"
-        poetry run pytest ${{ inputs.pytest-args }} --tb=short -v --ignore=tests/test_auth.py 2>&1 | tee pytest_output.txt
+        echo "Running tests with MGC_PATH: $MGC_PATH"
+        uv run pytest ${{ inputs.pytest-args }} --tb=short -v --html=report.html --self-contained-html 2>&1 | tee pytest_output.txt
         echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
-        
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: pytest-results
-        path: ./tmp/mgccli-source/pytest_output.txt
+        path: |
+          ./tmp/mgccli-source/pytest_output.txt
+          ./tmp/mgccli-source/report.html
         retention-days: 2
-        

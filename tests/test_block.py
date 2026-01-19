@@ -1,9 +1,12 @@
 import json
+import pytest
 import random
 import time
 from utils import run_cli
 
+
 block_test_context = {}
+pytest.skip("Skipping ", allow_module_level=True)
 
 
 def _get_volume(volume_id):

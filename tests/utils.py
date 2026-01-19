@@ -1,77 +1,35 @@
 import json
-import os
+import logging
 import subprocess
-import shlex
-from typing import List, Dict
+import os
 
-MGC_PATH = os.environ.get("MGC_PATH") or "mgc"
-MGC_API_KEY = os.environ.get("MGC_API_KEY")
-MGC_PRINT_COMMAND = str(os.environ.get("MGC_PRINT_COMMAND")).lower() == "true"
 
-def format_command_for_display(command: List[str]) -> str:
-    """Format command for display, handling JSON parameters properly."""
-    formatted_parts = []
-    
-    for part in command:
-        # Check if this part contains JSON (starts with '=' and contains '{' or '[')
-        if '=' in part and ('{' in part or '[' in part):
-            # Split on first '=' to separate parameter name from value
-            param_name, param_value = part.split('=', 1)
-            
-            try:
-                # Try to parse as JSON and format it in a single line
-                json_value = json.loads(param_value)
-                formatted_json = json.dumps(json_value, separators=(',', ':'))
-                # Format as single-line parameter
-                formatted_part = f"{param_name}={formatted_json}"
-            except json.JSONDecodeError:
-                # If not valid JSON, just escape quotes for display
-                formatted_part = part.replace('"', '\\"')
-        else:
-            formatted_part = part
-        if MGC_API_KEY:
-            formatted_part = formatted_part.replace(MGC_API_KEY, "[REDACTED]")
-        formatted_parts.append(formatted_part)
+mgc_api_key = os.environ.get("MGC_API_KEY", "")
+mgc_cli_path = os.environ.get("MGC_PATH", "mgc")
+mgc_verbose = bool(os.environ.get("MGC_VERBOSE", False))
 
-    return " ".join(formatted_parts)
 
-def run_cli(args: List[str]) -> tuple[int, str, str, Dict]:
-    """Run CLI command and return exit code, plain text output and parsed JSON output."""
-    if MGC_API_KEY:
-        command = [MGC_PATH] + args + ["--output=json", "--raw", "--api-key", MGC_API_KEY]
-    else:
-        command = [MGC_PATH] + args + ["--output=json", "--raw"]
-    result = subprocess.run(command, capture_output=True, text=True)
-
+def run_cli(commands: list[str], timeout: int = 0, is_authenticated: bool = True, has_json_output: bool = True) -> tuple[int, str, str, dict]:
+    command = [mgc_cli_path] + commands
+    if has_json_output:
+        command = command + ["--output", "json", "--raw"]
+    if is_authenticated:
+        command = command + ["--api-key", mgc_api_key]
+    if timeout > 0:
+        command = ["timeout", str(timeout)] + command
+    print(f"Running command: {command}") if mgc_verbose else None
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+    except Exception as e:
+        logging.error(f"Error while running command: {e}")
+        raise
     try:
         json_output = json.loads(result.stdout)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         json_output = {}
-
-    if result.returncode != 0 or MGC_PRINT_COMMAND:
-        print(f"Command:")
-        print(format_command_for_display(command))
-        print()
-
-    return result.returncode, result.stdout, result.stderr, json_output
-
-
-def run_cli_with_timeout(args: List[str], timeout: int = None) -> tuple[int, str, str, Dict]:
-    """Run CLI command and return exit code, plain text output and parsed JSON output."""
-    command = [MGC_PATH] + args + ["--output=json", "--raw"]
-    
-    if not timeout:
-        raise ValueError("Timeout is required")
-
-    try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        # Se o timeout for excedido, retornamos um código de erro e mensagem apropriada
-        return 1, "", "Command execution timed out", {}
-
-    try:
-        json_output = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        json_output = {}
-
+    if mgc_verbose:
+        print(f"Finished with return code: {result.returncode}")
+        print(f"Stdout: {result.stdout}")
+        print(f"Stderr: {result.stderr}")
+        print(f"JSON Output: {json_output}")
     return result.returncode, result.stdout, result.stderr, json_output

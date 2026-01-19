@@ -1,0 +1,64 @@
+name: CI Tests with MGC
+
+on:
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Pytest via Make
+    runs-on: ubuntu-latest
+    
+    env:
+      MGC_API_KEY: ${{ secrets.MGC_API_KEY }}
+      MGC_PATH: ${{ vars.MGC_PATH }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Install Magalu Cloud CLI (via APT)
+        run: |
+          sudo mkdir -p /etc/apt/keyrings
+          sudo gpg --yes --keyserver keyserver.ubuntu.com --recv-keys 0C59E21A5CB00594
+          sudo gpg --export --armor 0C59E21A5CB00594 | sudo gpg --dearmor -o /etc/apt/keyrings/magalu-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/magalu-archive-keyring.gpg] https://packages.magalu.cloud/apt stable main" | sudo tee /etc/apt/sources.list.d/magalu.list
+          sudo apt update
+          sudo apt install -y mgccli
+
+      - name: Verify MGC_API_KEY and MGC_PATH and CLI
+        run: |
+          if [ -z "$MGC_API_KEY" ]; then
+            echo "Error: MGC_API_KEY is not set in GitHub Secrets."
+            exit 1
+          fi
+          if [ -z "$MGC_PATH" ]; then
+            echo "Error: MGC_PATH is not set in GitHub Variables."
+            exit 1
+          fi
+          mgc --version
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-html-report
+          path: report.html
+          retention-days: 7
