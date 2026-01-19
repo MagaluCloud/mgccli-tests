@@ -1,3 +1,4 @@
+import json
 import pytest
 import random
 import time
@@ -66,7 +67,7 @@ def test_bs_snapshots_create():
             "create",
             f"--name=test-snapshot-{random.randint(0, 9999)}",
             "--description='just for testing'",
-            f"--volume.id={block_test_context.get('volume_id')}",
+            f"--volume.id={block_test_context['volume_id']}",
         ]
     )
     assert exit_code == 0, stderr
@@ -110,6 +111,57 @@ def test_bs_snapshots_delete():
     assert exit_code == 0, stderr
     # Extra wait to relieve snapshot count for volume
     time.sleep(10)
+
+
+def test_bs_schedulers_create():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "bs",
+            "schedulers",
+            "create",
+            "--name=test-scheduler",
+            "--policy.frequency.daily.start-time='14:00:00'",
+            "--policy.retention-in-days=10",
+            "--snapshot.type=object",
+        ]
+    )
+    assert exit_code == 0, stderr
+    assert "id" in jsonout
+
+    block_test_context["scheduler_id"] = jsonout["id"]
+
+
+def test_bs_schedulers_list():
+    exit_code, _, stderr, jsonout = run_cli(["bs", "schedulers", "list"])
+    assert exit_code == 0, stderr
+    assert "schedulers" in jsonout
+    assert len(jsonout["schedulers"]) > 0
+
+
+def test_bs_schedulers_get():
+    exit_code, _, stderr, jsonout = run_cli(
+        ["bs", "schedulers", "get", block_test_context["scheduler_id"]]
+    )
+    assert exit_code == 0, stderr
+
+    assert "id" in jsonout
+    assert "name" in jsonout
+    assert "state" in jsonout
+
+    assert jsonout["name"] == "test-scheduler"
+
+
+def test_bs_schedulers_delete():
+    exit_code, _, stderr, jsonout = run_cli(
+        [
+            "bs",
+            "schedulers",
+            "delete",
+            block_test_context["scheduler_id"],
+            "--no-confirm",
+        ]
+    )
+    assert exit_code == 0, stderr
 
 
 def test_bs_volumes_delete():
