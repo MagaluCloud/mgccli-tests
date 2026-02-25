@@ -246,15 +246,6 @@ def test_network_public_ips_get():
     assert "id" in jsonout
     assert jsonout["id"] == network_test_context["public_ip_id"]
 
-def test_network_public_ips_delete_required_flags_empty():
-    exit_code, _, stderr, jsonout = run_cli(["network", "public-ips", "delete"])
-    assert exit_code != 0, "code should be different from 0"
-    assert "missing required flag: --public-ip-id=string" in stderr
-
-def test_network_public_ips_delete():
-    exit_code, _, stderr, jsonout = run_cli(["network", "public-ips", "delete", f"--public-ip-id={network_test_context['public_ip_id']}", "--no-confirm"])
-    assert exit_code == 0, stderr
-
 def test_network_security_groups_create_required_flags_empty():
     exit_code, _, stderr, jsonout = run_cli(["network", "security-groups", "create"])
     assert exit_code != 0, "code should be different from 0"
@@ -438,4 +429,13 @@ def test_network_vpcs_delete():
     exit_code, _, stderr, _ = run_cli(
         ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
     )
+    assert exit_code == 0, stderr
+
+def test_network_public_ips_delete_required_flags_empty():
+    exit_code, _, stderr, jsonout = run_cli(["network", "public-ips", "delete"])
+    assert exit_code != 0, "code should be different from 0"
+    assert "missing required flag: --public-ip-id=string" in stderr
+
+def test_network_public_ips_delete():
+    exit_code, _, stderr, jsonout = run_cli(["network", "public-ips", "delete", f"--public-ip-id={network_test_context['public_ip_id']}", "--no-confirm"])
     assert exit_code == 0, stderr
