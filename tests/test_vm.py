@@ -63,12 +63,14 @@ def test_vm_machine_types_list_limit_offset():
 
 
 def test_vm_instances_create():
+    name = f"test_vm_{uuid.uuid1()}"
+
     exit_code, _, stderr, jsonout = run_cli(
         [
             "vm",
             "instances",
             "create",
-            f"--name=test_vm_{uuid.uuid1()}",
+            f"--name={name}",
             "--image.name='cloud-ubuntu-24.04 LTS'",
             "--machine-type.name=BV1-1-10",
             f"--ssh-key-name={vm_test_context['key_name']}",
@@ -77,6 +79,7 @@ def test_vm_instances_create():
     assert exit_code == 0, stderr
     assert "id" in jsonout
 
+    vm_test_context["vm_name"] = name
     vm_test_context["vm_id"] = jsonout["id"]
 
     # Wait until vm creation is over (hoping it will be)
@@ -94,7 +97,7 @@ def test_vm_instances_create_with_error():
             "vm",
             "instances",
             "create",
-            "--name=test_vm",
+            f"--name={vm_test_context['vm_name']}",
             "--image.name='cloud-ubuntu-24.04 LTS'",
             "--machine-type.name=BV1-1-10",
             f"--ssh-key-name={vm_test_context['key_name']}",

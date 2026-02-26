@@ -1,10 +1,44 @@
 import time
 import uuid
+import pytest
 
 from utils import run_cli
 
 network_test_context = {}
 random_subnet_ip = '10.{}.{}.0/24'.format(*__import__('random').sample(range(0,255),4))
+
+def _create_network_vpc():
+    exit_code, stdout, stderr, jsonout = run_cli(
+        ["network", "vpcs", "create", f"--name=test-{uuid.uuid1()}", "--description", "VPC for CLI tests"]
+    )
+
+    network_test_context["vpc_id"] = jsonout["id"]
+
+    return exit_code, stdout, stderr, jsonout
+
+def _get_network_vpcs():
+    return run_cli(
+        ["network", "vpcs", "get", network_test_context["vpc_id"]]
+    )
+
+def _wait_for_network_vpc_running_state():
+    _, _, _, jsonout = _get_network_vpcs()
+
+    # Wait until VPC processing is over (hoping it will be)
+    while jsonout["status"] in ["pending", "processing"]:
+        time.sleep(5)
+        _, _, _, jsonout = _get_network_vpcs()
+
+def _clear_network_test_context():
+    exit_code, _, stderr, _ = run_cli(
+        ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
+    )
+
+@pytest.fixture(scope="module", autouse=True)
+def network_cleanup():
+    yield
+    if "vpc_id" in network_test_context:
+        _clear_network_test_context()
 
 def test_network_vpcs_create_required_flags_empty():
     exit_code, _, stderr, jsonout = run_cli(
@@ -14,14 +48,28 @@ def test_network_vpcs_create_required_flags_empty():
     assert "missing required flag: --name=string" in stderr
 
 def test_network_vpcs_create():
-    exit_code, _, stderr, jsonout = run_cli(
-        ["network", "vpcs", "create", f"--name=test-{uuid.uuid1()}", "--description", "VPC for CLI tests"]
-    )
+    exit_code, _, stderr, jsonout = _create_network_vpc()
     assert exit_code == 0, stderr
     assert jsonout["id"] is not None
     assert jsonout["status"] == "pending"
 
-    network_test_context["vpc_id"] = jsonout["id"]
+    _wait_for_network_vpc_running_state()
+
+def test_network_vpcs_delete_required_flags_empty():
+    exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "delete"])
+    assert exit_code != 0, "code should be different from 0"
+    assert "missing required flag: --id=string" in stderr
+
+def test_network_vpcs_delete():
+    exit_code, _, stderr, _ = run_cli(
+        ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
+    )
+    assert exit_code == 0, stderr
+
+    network_test_context.pop("vpc_id")
+
+    _create_network_vpc()
+    _wait_for_network_vpc_running_state()
 
 def test_network_vpcs_get_required_flags_empty():
     exit_code, _, stderr, jsonout = run_cli(
@@ -36,13 +84,6 @@ def test_network_vpcs_get():
     )
     assert exit_code == 0, stderr
     assert jsonout["id"] == network_test_context["vpc_id"]
-
-    # Wait until VPC processing is over (hoping it will be)
-    while jsonout["status"] in ["pending", "processing"]:
-        time.sleep(5)
-        _, _, _, jsonout = run_cli(
-            ["network", "vpcs", "get", network_test_context["vpc_id"]]
-        )
 
 def test_network_vpcs_list():
     exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "list"])
@@ -418,17 +459,6 @@ def test_network_subnetpools_delete_required_flags_empty():
 
 def test_network_subnetpools_delete():
     exit_code, _, stderr, jsonout = run_cli(["network", "subnetpools", "delete", f"--subnetpool-id={network_test_context['subnetpool_id']}", "--no-confirm"])
-    assert exit_code == 0, stderr
-
-def test_network_vpcs_delete_required_flags_empty():
-    exit_code, _, stderr, jsonout = run_cli(["network", "vpcs", "delete"])
-    assert exit_code != 0, "code should be different from 0"
-    assert "missing required flag: --id=string" in stderr
-
-def test_network_vpcs_delete():
-    exit_code, _, stderr, _ = run_cli(
-        ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
-    )
     assert exit_code == 0, stderr
 
 def test_network_public_ips_delete_required_flags_empty():
