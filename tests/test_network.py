@@ -428,11 +428,11 @@ def test_network_vpcs_delete_required_flags_empty():
 def test_network_vpcs_delete():
     vpc_id = network_test_context["vpc_id"]
     exit_code, _, stderr, _ = run_cli(
-        ["network", "vpcs", "delete", vpc_id, "--no-confirm", "--cli.timeout", "5m"]
+        ["network", "vpcs", "delete", vpc_id, "--no-confirm"]
     )
 
     if exit_code != 0:
-        if "Status: 404 Not Found" in stderr or "vpc not found" in stderr.lower():
+        if "Status: 404 Not Found" in stderr:
             return
 
         if "EOF" in stderr:
@@ -444,6 +444,9 @@ def test_network_vpcs_delete():
             exit_code, _, stderr, _ = run_cli(
                 ["network", "vpcs", "delete", vpc_id, "--no-confirm"]
             )
+
+    if "Status: 404 Not Found" in stderr:
+        return
 
     assert exit_code == 0, stderr
 
