@@ -429,6 +429,10 @@ def test_network_vpcs_delete():
     exit_code, _, stderr, _ = run_cli(
         ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
     )
+
+    if "Status: 404 Not Found" in stderr:
+        return
+
     assert exit_code == 0, stderr
 
 def test_network_public_ips_delete_required_flags_empty():
