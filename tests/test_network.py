@@ -258,7 +258,7 @@ def test_network_security_groups_create():
             "security-groups",
             "create",
             "--name",
-            "test-security-group",
+            f"test-security-group-{uuid.uuid1()}",
         ]
     )
     assert exit_code == 0, stderr
