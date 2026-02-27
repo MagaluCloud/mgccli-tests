@@ -426,12 +426,24 @@ def test_network_vpcs_delete_required_flags_empty():
     assert "missing required flag: --id=string" in stderr
 
 def test_network_vpcs_delete():
+    vpc_id = network_test_context["vpc_id"]
     exit_code, _, stderr, _ = run_cli(
-        ["network", "vpcs", "delete", network_test_context["vpc_id"], "--no-confirm"]
+        ["network", "vpcs", "delete", vpc_id, "--no-confirm"]
     )
 
-    if "Status: 404 Not Found" in stderr:
-        return
+    if exit_code != 0:
+        if "Status: 404 Not Found" in stderr or "vpc not found" in stderr.lower():
+            return
+
+        if "EOF" in stderr:
+            time.sleep(10)
+            check_exit, _, _, _ = run_cli(["network", "vpcs", "get", vpc_id])
+            if check_exit != 0: 
+                return
+
+            exit_code, _, stderr, _ = run_cli(
+                ["network", "vpcs", "delete", vpc_id, "--no-confirm"]
+            )
 
     assert exit_code == 0, stderr
 
