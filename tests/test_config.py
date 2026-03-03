@@ -48,7 +48,7 @@ def test_config_set_empty_flags():
 
 
 def test_config_set_workers():
-    exit_code, _, stderr, _ = run_cli(["config", "set", "workers", "5"])
+    exit_code, _, stderr, _ = run_cli(["config", "set", "workers", "999"])
     assert exit_code == 0
 
     exit_code, _, stderr, _ = run_cli(["config", "set", "workers", "0"])
@@ -90,13 +90,13 @@ def test_config_set_default_output():
 
 
 def test_config_set_region():
-    exit_code, _, stderr, _ = run_cli(["config", "set", "region", "br-se1"])
-    assert exit_code == 0
-
     exit_code, _, stderr, _ = run_cli(["config", "set", "region", "br-ne1"])
     assert exit_code == 0
 
     exit_code, _, stderr, _ = run_cli(["config", "set", "region", "br-mgl1"])
+    assert exit_code == 0
+
+    exit_code, _, stderr, _ = run_cli(["config", "set", "region", "br-se1"])
     assert exit_code == 0
 
     exit_code, _, stderr, _ = run_cli(["config", "set", "region", "test"])
@@ -157,14 +157,26 @@ def test_config_set_server_url():
     assert exit_code == 0
 
 
+def test_config_get_empty_flags():
+    exit_code, _, stderr, jsonout = run_cli(["config", "get"])
+    assert exit_code != 0
+    assert "missing required flag: --key=string" in stderr
+
+
 def test_config_get():
-    exit_code, _, stderr, jsonout = run_cli(["config", "get", "workers"])
+    exit_code, _, stderr, jsonout = run_cli(["config", "get", "--key=workers"])
     assert exit_code == 0, stderr
-    assert jsonout == 999
+    assert jsonout["workers"] == 999
 
     exit_code, _, stderr, jsonout = run_cli(["config", "get", "region"])
     assert exit_code == 0, stderr
-    assert jsonout == "br-se1"
+    assert jsonout["region"] == "br-se1"
+
+
+def test_config_get_invalid_config():
+    exit_code, _, stderr, jsonout = run_cli(["config", "get", "test"])
+    assert exit_code != 0
+    assert "config test not found" in stderr
 
 
 def test_config_delete():
