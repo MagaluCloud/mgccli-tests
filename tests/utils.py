@@ -5,7 +5,7 @@ import os
 
 
 mgc_api_key = os.environ.get("MGC_API_KEY", "")
-mgc_cli_path = os.environ.get("MGC_PATH", "mgc")
+mgc_cli_path = os.environ.get("MGC_PATH", "/home/n.stefhany/Documentos/Aplicações/tmp-mgccli/mgccli")
 mgc_verbose = bool(os.environ.get("MGC_VERBOSE", False))
 
 
