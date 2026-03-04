@@ -12,7 +12,7 @@ mgc_verbose = bool(os.environ.get("MGC_VERBOSE", False))
 def run_cli(commands: list[str], timeout: int = 0, is_authenticated: bool = True, has_json_output: bool = True) -> tuple[int, str, str, dict]:
     command = [mgc_cli_path] + commands
     if has_json_output:
-        command = command + ["--output", "json", "--raw"]
+        command = command + ["--raw"]
     if is_authenticated:
         command = command + ["--api-key", mgc_api_key]
     if timeout > 0:

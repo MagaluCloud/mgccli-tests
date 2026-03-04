@@ -1,0 +1,63 @@
+name: CI Tests with MGC v2
+
+on:
+  pull_request:
+    branches: [ cli-v2 ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Pytest via Make
+    runs-on: ubuntu-latest
+    
+    env:
+      MGC_API_KEY: ${{ secrets.MGC_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Checkout MagaluCloud/tmp-mgccli
+        uses: actions/checkout@v4
+        with:
+          repository: MagaluCloud/tmp-mgccli
+          path: tmp-mgccli
+
+      - name: Set up Magalu Cloud CLI (v2)
+        run: |
+          chmod +x tmp-mgccli/mgccli
+          # Create a symbolic link or just use the absolute path
+          echo "MGC_PATH=$GITHUB_WORKSPACE/tmp-mgccli/mgccli" >> $GITHUB_ENV
+          # Add to PATH so 'mgccli' can be called as 'mgccli'
+          echo "$GITHUB_WORKSPACE/tmp-mgccli" >> $GITHUB_PATH
+
+      - name: Verify MGC_API_KEY and MGC_PATH and CLI
+        run: |
+          if [ -z "$MGC_API_KEY" ]; then
+            echo "Error: MGC_API_KEY is not set in GitHub Secrets."
+            exit 1
+          fi
+          echo "Using CLI at: $MGC_PATH"
+          $MGC_PATH version
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-html-report
+          path: report.html
+          retention-days: 7
