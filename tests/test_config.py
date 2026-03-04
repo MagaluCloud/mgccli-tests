@@ -6,11 +6,15 @@ test_config_context = {}
 def test_config_list():
     exit_code, _, _, jsonout = run_cli(["config", "list"])
     assert exit_code == 0, jsonout
-    assert "chunkSize" in jsonout
-    assert "defaultOutput" in jsonout
+    assert "chunk-size" in jsonout
+    assert "debug" in jsonout
+    assert "default-output" in jsonout
+    assert "env" in jsonout
+    assert "lang" in jsonout
+    assert "raw-output" in jsonout
     assert "region" in jsonout
+    assert "server-url" in jsonout
     assert "workers" in jsonout
-    assert "x-zone" in jsonout
 
 
 def test_config_get_schema():
