@@ -49,7 +49,6 @@ jobs:
             exit 1
           fi
           echo "Using CLI at: $MGC_PATH"
-          $MGC_PATH version
 
       - name: Run tests
         run: make test
