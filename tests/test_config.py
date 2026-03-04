@@ -20,11 +20,16 @@ def test_config_list():
 def test_config_get_schema():
     exit_code, _, stderr, jsonout = run_cli(["config", "get-schema", "env"])
     assert exit_code == 0, stderr
-    assert jsonout["default"] == "prod"
+    assert jsonout["Default"] == "prod"
 
-    exit_code, _, stderr, jsonout = run_cli(["config", "get-schema", "defaultOutput"])
+    exit_code, _, stderr, jsonout = run_cli(["config", "get-schema", "--key=default-output"])
     assert exit_code == 0, stderr
-    assert "default" not in jsonout
+    assert jsonout["Default"] == "json"
+
+def test_config_get_schema_not_found():
+    exit_code, _, stderr, jsonout = run_cli(["config", "get-schema", "test"])
+    assert exit_code != 0, stderr
+    assert 'config "test" not found' in stderr
 
 
 def test_config_set():
