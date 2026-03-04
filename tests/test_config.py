@@ -61,7 +61,7 @@ def test_config_set_workers():
 
 
 def test_config_set_chunk_size():
-    exit_code, _, stderr, _ = run_cli(["config", "set", "chunk-size", "8"])
+    exit_code, _, stderr, _ = run_cli(["config", "set", "chunk-size", "10"])
     assert exit_code == 0
 
     exit_code, _, stderr, _ = run_cli(["config", "set", "chunk-size", "2"])
@@ -180,9 +180,31 @@ def test_config_get_invalid_config():
 
 
 def test_config_delete():
+    exit_code, _, stderr, jsonout = run_cli(["config", "get", "workers"])
+    assert exit_code == 0, stderr
+    assert jsonout["workers"] == 999
+    
     exit_code, _, stderr, jsonout = run_cli(["config", "delete", "workers"])
     assert exit_code == 0, stderr
 
     exit_code, _, stderr, jsonout = run_cli(["config", "get", "workers"])
     assert exit_code == 0, stderr
-    assert jsonout == {}
+    assert jsonout["workers"] == 5
+
+    exit_code, _, stderr, jsonout = run_cli(["config", "get", "chunk-size"])
+    assert exit_code == 0, stderr
+    assert jsonout["chunk-size"] == 10
+
+    exit_code, _, stderr, jsonout = run_cli(["config", "delete", "--key=chunk-size"])
+    assert exit_code == 0, stderr
+
+    exit_code, _, stderr, jsonout = run_cli(["config", "get", "chunk-size"])
+    assert exit_code == 0, stderr
+    assert jsonout["chunk-size"] == 8
+
+
+def test_config_delete_empty_flag():
+    exit_code, _, stderr, jsonout = run_cli(["config", "delete"])
+    assert exit_code != 0
+    assert "missing required flag: --key=string" in stderr
+
