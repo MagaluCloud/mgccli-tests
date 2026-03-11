@@ -6,8 +6,6 @@ from utils import run_cli
 
 
 block_test_context = {}
-pytest.skip("Skipping ", allow_module_level=True)
-
 
 def _get_volume(volume_id):
     return run_cli(["bs", "volumes", "get", volume_id])
@@ -21,6 +19,30 @@ def test_bs_volume_types_list():
     exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list"])
     assert exit_code == 0, stderr
     assert len(jsonout["types"]) > 0
+
+def test_bs_volume_types_list_with_filter():
+    exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list", "--name=10k"])
+    assert exit_code == 0, stderr
+    assert len(jsonout["types"]) == 1
+    assert "10k" in jsonout["types"][0]["name"]
+
+    exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list", "--availability-zone=br-se1-abc"])
+    assert exit_code == 0, stderr
+    assert len(jsonout["types"]) == 0
+
+    exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list", "--availability-zone=br-se1-a"])
+    assert exit_code == 0, stderr
+    assert len(jsonout["types"]) > 0
+
+    exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list", "--allows-encryption=true"])
+    assert exit_code == 0, stderr
+    assert len(jsonout["types"]) > 0
+    assert jsonout["types"][0]["allows_encryption"] == True
+
+    exit_code, _, stderr, jsonout = run_cli(["bs", "volume-types", "list", "--allows-encryption=false"])
+    assert exit_code == 0, stderr
+    assert len(jsonout["types"]) > 0
+    assert jsonout["types"][0]["allows_encryption"] == False
 
 
 def test_bs_volumes_create():
