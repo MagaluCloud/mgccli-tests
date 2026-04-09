@@ -1,6 +1,6 @@
 # mgc-cli-tests
 
-Functional tests for Magalu Cloud CLI.
+Functional tests for Magalu Cloud CLI v1 and CLI v2.
 
 ## Requirements
 
